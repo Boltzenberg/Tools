@@ -2,29 +2,22 @@
 #include "stdio.h"
 #include "string.h"
 
-int main(int argc, char** argv)
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
-	if (argc != 2)
-	{
-		printf("Usage:  clip \"Text to put on the clipboard\"\n");
-		return -1;
-	}
-
-	size_t len = strlen(argv[1]);
-	HGLOBAL hdst = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, len + 1);
-	char* dst = (char*)GlobalLock(hdst);
-	memcpy(dst, argv[1], len);
-	dst[len] = 0;
+	size_t cch = wcslen(pCmdLine);
+	HGLOBAL hdst = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, (cch + 1) * sizeof(wchar_t));
+	PWSTR dst = (PWSTR)GlobalLock(hdst);
+	memcpy(dst, pCmdLine, cch * sizeof(wchar_t));
+	dst[cch] = 0;
 	GlobalUnlock(hdst);
 
 	if (!OpenClipboard(NULL))
 		return GetLastError();
 
 	EmptyClipboard();
-	if (!SetClipboardData(CF_TEXT, hdst))
+	if (!SetClipboardData(CF_UNICODETEXT, hdst))
 		return GetLastError();
 	CloseClipboard();
 
-	printf("Done!\n");
 	return 0;
 }
